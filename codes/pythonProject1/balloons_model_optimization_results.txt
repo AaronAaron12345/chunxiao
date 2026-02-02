@@ -1,0 +1,526 @@
+
+********************************************************************************************************************************************************************************************************
+Random Forest Run Date and Time: 2024-05-31 08:59:35
+Best parameters found:
+OrderedDict([('max_depth', 5), ('n_estimators', 148)])
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [1.  0.6 0.6 1.  1. ]
+Mean accuracy: 0.8400000000000001
+Standard deviation: 0.19595917942265426
+
+
+Model training and optimization time (seconds):
+23.864562511444092
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+XGBoost Run Date and Time: 2024-05-31 08:59:58
+Best parameters found:
+OrderedDict([('colsample_bytree', 1.0), ('learning_rate', 0.01), ('max_depth', 10), ('min_child_weight', 1), ('n_estimators', 155), ('subsample', 1.0)])
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.83333333 0.6        0.6        0.8        1.        ]
+Mean accuracy: 0.7666666666666666
+Standard deviation: 0.1520233900132184
+
+
+Model training and optimization time (seconds):
+22.583311319351196
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+Random Forest Run Date and Time: 2024-05-31 09:03:54
+Best parameters found:
+OrderedDict([('max_depth', 5), ('n_estimators', 148)])
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [1.  0.6 0.6 1.  1. ]
+Mean accuracy: 0.8400000000000001
+Standard deviation: 0.19595917942265426
+
+
+Model training and optimization time (seconds):
+24.01330280303955
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+XGBoost Run Date and Time: 2024-05-31 09:04:16
+Best parameters found:
+OrderedDict([('colsample_bytree', 1.0), ('learning_rate', 0.01), ('max_depth', 10), ('min_child_weight', 1), ('n_estimators', 155), ('subsample', 1.0)])
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.83333333 0.6        0.6        0.8        1.        ]
+Mean accuracy: 0.7666666666666666
+Standard deviation: 0.1520233900132184
+
+
+Model training and optimization time (seconds):
+22.483932733535767
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+TabPFN Run Date and Time: 2024-05-31 09:04:19
+Best parameters found:
+Default Parameters
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.5 0.6 0.6 0.8 1. ]
+Mean accuracy: 0.7
+Standard deviation: 0.1788854381999832
+
+
+Model training and optimization time (seconds):
+1.2897472381591797
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+TPOT Run Date and Time: 2024-07-16 14:58:09
+Best parameters found:
+Default Parameters
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.8 0.8 0.4 1.  0.8]
+Mean accuracy: 0.76
+Standard deviation: 0.19595917942265426
+
+
+Model training and optimization time (seconds):
+145.6309449672699
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+Random Forest Run Date and Time: 2024-10-21 10:26:00
+Best parameters found:
+OrderedDict([('max_depth', 8), ('n_estimators', 93)])
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.8 1.  0.4 1.  0.8]
+Mean accuracy: 0.8
+Standard deviation: 0.21908902300206645
+
+
+Model training and optimization time (seconds):
+21.806421518325806
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+XGBoost Run Date and Time: 2024-10-21 10:27:00
+Best parameters found:
+OrderedDict([('colsample_bytree', 0.1), ('learning_rate', 0.02863583985995735), ('max_depth', 9), ('min_child_weight', 1), ('n_estimators', 200), ('subsample', 1.0)])
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.8 1.  0.4 1.  0.6]
+Mean accuracy: 0.76
+Standard deviation: 0.23323807579381203
+
+
+Model training and optimization time (seconds):
+17.929266452789307
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+TabPFN Run Date and Time: 2024-10-21 10:31:13
+Best parameters found:
+Default Parameters
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.8 0.6 0.4 1.  0.6]
+Mean accuracy: 0.6799999999999999
+Standard deviation: 0.20396078054371142
+
+
+Model training and optimization time (seconds):
+1.7902424335479736
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+HyperTab Run Date and Time: 2024-10-21 10:52:58
+Best parameters found:
+Default Parameters
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.8 0.6 0.2 1.  0.4]
+Mean accuracy: 0.5999999999999999
+Standard deviation: 0.282842712474619
+
+
+Model training and optimization time (seconds):
+411.54905819892883
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+TPOT Run Date and Time: 2024-10-21 11:19:57
+Best parameters found:
+Default Parameters
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.8 0.8 0.4 1.  0.8]
+Mean accuracy: 0.76
+Standard deviation: 0.19595917942265426
+
+
+Model training and optimization time (seconds):
+158.45265126228333
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+Random Forest Run Date and Time: 2024-10-21 14:25:02
+Best parameters found:
+OrderedDict([('max_depth', 8), ('n_estimators', 93)])
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.8 1.  0.4 1.  0.8]
+Mean accuracy: 0.8
+Standard deviation: 0.21908902300206645
+
+
+Model training and optimization time (seconds):
+22.591562509536743
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+Random Forest Run Date and Time: 2024-10-21 14:29:47
+Best parameters found:
+OrderedDict([('max_depth', 8), ('n_estimators', 93)])
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.8 1.  0.4 1.  0.8]
+Mean accuracy: 0.8
+Standard deviation: 0.21908902300206645
+
+
+Model training and optimization time (seconds):
+27.15438747406006
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+Random Forest Run Date and Time: 2024-10-21 14:32:58
+Best parameters found:
+OrderedDict([('max_depth', 5), ('n_estimators', 148)])
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.66666667 1.         1.         0.66666667 0.33333333 1.
+ 1.         1.         0.5        1.        ]
+Mean accuracy: 0.8166666666666667
+Standard deviation: 0.24094720491334937
+
+
+Model training and optimization time (seconds):
+24.910497903823853
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+HyperTab Run Date and Time: 2024-10-21 15:27:50
+Best parameters found:
+Default Parameters
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.6 1.  0.2 1.  0.8]
+Mean accuracy: 0.72
+Standard deviation: 0.29933259094191533
+
+
+Model training and optimization time (seconds):
+1083.6795415878296
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+TPOT Run Date and Time: 2024-10-21 16:03:50
+Best parameters found:
+Default Parameters
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.8 0.8 0.2 1.  0.8]
+Mean accuracy: 0.72
+Standard deviation: 0.2712931993250108
+
+
+Model training and optimization time (seconds):
+627.09432554245
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+TabPFN Run Date and Time: 2024-10-21 16:14:41
+Best parameters found:
+Default Parameters
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.8 0.6 0.4 1.  0.6]
+Mean accuracy: 0.6799999999999999
+Standard deviation: 0.20396078054371142
+
+
+Model training and optimization time (seconds):
+1.280759334564209
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+Random Forest Run Date and Time: 2024-10-21 16:27:09
+Best parameters found:
+OrderedDict([('max_depth', 8), ('n_estimators', 93)])
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.8 1.  0.4 1.  0.8]
+Mean accuracy: 0.8
+Standard deviation: 0.21908902300206645
+
+
+Model training and optimization time (seconds):
+21.949946403503418
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+Random Forest Run Date and Time: 2024-10-21 16:29:16
+Best parameters found:
+OrderedDict([('max_depth', 8), ('n_estimators', 93)])
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.8 1.  0.4 1.  0.8]
+Mean accuracy: 0.8
+Standard deviation: 0.21908902300206645
+
+
+Model training and optimization time (seconds):
+22.206409692764282
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+Random Forest Run Date and Time: 2024-10-21 16:35:38
+Best parameters found:
+OrderedDict([('max_depth', 8), ('n_estimators', 93)])
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.8 1.  0.4 1.  0.8]
+Mean accuracy: 0.8
+Standard deviation: 0.21908902300206645
+
+
+Model training and optimization time (seconds):
+22.226981163024902
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+Random Forest Run Date and Time: 2024-10-21 16:38:27
+Best parameters found:
+OrderedDict([('max_depth', 8), ('n_estimators', 93)])
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.8 1.  0.4 1.  0.8]
+Mean accuracy: 0.8
+Standard deviation: 0.21908902300206645
+
+
+Model training and optimization time (seconds):
+21.919546127319336
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+Random Forest Run Date and Time: 2024-10-21 16:42:59
+Best parameters found:
+OrderedDict([('max_depth', 8), ('n_estimators', 93)])
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.8 1.  0.4 1.  0.8]
+Mean accuracy: 0.8
+Standard deviation: 0.21908902300206645
+
+
+Model training and optimization time (seconds):
+22.029789209365845
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+Random Forest Run Date and Time: 2024-10-21 16:46:35
+Best parameters found:
+OrderedDict([('max_depth', 8), ('n_estimators', 93)])
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.8 1.  0.4 1.  0.8]
+Mean accuracy: 0.8
+Standard deviation: 0.21908902300206645
+
+
+Model training and optimization time (seconds):
+21.72095274925232
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+XGBoost Run Date and Time: 2024-10-21 16:49:23
+Best parameters found:
+OrderedDict([('colsample_bytree', 1.0), ('learning_rate', 1.0), ('max_depth', 10), ('min_child_weight', 1), ('n_estimators', 10), ('subsample', 1.0)])
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.8 0.6 0.4 1.  0.8]
+Mean accuracy: 0.72
+Standard deviation: 0.20396078054371142
+
+
+Model training and optimization time (seconds):
+16.472021341323853
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+XGBoost Run Date and Time: 2024-10-21 16:50:33
+Best parameters found:
+OrderedDict([('colsample_bytree', 1.0), ('learning_rate', 1.0), ('max_depth', 10), ('min_child_weight', 1), ('n_estimators', 10), ('subsample', 1.0)])
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.8 0.6 0.4 1.  0.8]
+Mean accuracy: 0.72
+Standard deviation: 0.20396078054371142
+
+
+Model training and optimization time (seconds):
+16.19377827644348
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+XGBoost Run Date and Time: 2024-10-21 16:54:01
+Best parameters found:
+OrderedDict([('colsample_bytree', 1.0), ('learning_rate', 1.0), ('max_depth', 10), ('min_child_weight', 1), ('n_estimators', 10), ('subsample', 1.0)])
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.8 0.6 0.4 1.  0.8]
+Mean accuracy: 0.72
+Standard deviation: 0.20396078054371142
+
+
+Model training and optimization time (seconds):
+16.76381254196167
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+XGBoost Run Date and Time: 2024-10-21 16:55:34
+Best parameters found:
+OrderedDict([('colsample_bytree', 1.0), ('learning_rate', 1.0), ('max_depth', 10), ('min_child_weight', 1), ('n_estimators', 10), ('subsample', 1.0)])
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.8 0.6 0.4 1.  0.8]
+Mean accuracy: 0.72
+Standard deviation: 0.20396078054371142
+
+
+Model training and optimization time (seconds):
+16.510522842407227
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+XGBoost Run Date and Time: 2024-10-21 16:56:16
+Best parameters found:
+OrderedDict([('colsample_bytree', 1.0), ('learning_rate', 1.0), ('max_depth', 10), ('min_child_weight', 1), ('n_estimators', 10), ('subsample', 1.0)])
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.8 0.6 0.4 1.  0.8]
+Mean accuracy: 0.72
+Standard deviation: 0.20396078054371142
+
+
+Model training and optimization time (seconds):
+16.05540633201599
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+Random Forest Run Date and Time: 2024-10-21 16:57:08
+Best parameters found:
+OrderedDict([('max_depth', 8), ('n_estimators', 93)])
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.8 1.  0.4 1.  0.8]
+Mean accuracy: 0.8
+Standard deviation: 0.21908902300206645
+
+
+Model training and optimization time (seconds):
+21.3696072101593
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+TabPFN Run Date and Time: 2024-10-21 16:58:08
+Best parameters found:
+Default Parameters
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.8 0.6 0.4 1.  0.6]
+Mean accuracy: 0.6799999999999999
+Standard deviation: 0.20396078054371142
+
+
+Model training and optimization time (seconds):
+1.305323839187622
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+HyperTab Run Date and Time: 2024-10-22 09:00:52
+Best parameters found:
+Default Parameters
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.8 0.6 0.2 1.  0.4]
+Mean accuracy: 0.5999999999999999
+Standard deviation: 0.282842712474619
+
+
+Model training and optimization time (seconds):
+1129.0383882522583
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+TPOT Run Date and Time: 2024-10-22 14:37:46
+Best parameters found:
+Default Parameters
+
+5-fold Cross-Validation results:
+Individual fold accuracies: [0.8 0.8 0.2 1.  0.8]
+Mean accuracy: 0.72
+Standard deviation: 0.2712931993250108
+
+
+Model training and optimization time (seconds):
+754.6997604370117
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+TabPFN Run Date and Time: 2024-10-24 11:17:53
+Best parameters found:
+Default Parameters
+
+5-fold Cross-Validation results:
+Individual fold accuracies: []
+Mean accuracy: None
+Standard deviation: None
+
+
+Model training and optimization time (seconds):
+13.404842138290405
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+TPOT Run Date and Time: 2024-10-25 08:37:11
+Best parameters found:
+Default Parameters
+
+5-fold Cross-Validation results:
+Individual fold accuracies: []
+Mean accuracy: None
+Standard deviation: None
+
+
+Model training and optimization time (seconds):
+65437.85127854347
+**************************************************
+
+********************************************************************************************************************************************************************************************************
+HyperTab Run Date and Time: 2024-10-25 09:18:06
+Best parameters found:
+{'batch_size': 32, 'device': 'cuda:0', 'epochs': 50, 'hidden_dims': 10, 'lr': 0.001, 'subsample': 0.5, 'test_nodes': 50, 'verbose': True}
+
+5-fold Cross-Validation results:
+Individual fold accuracies: []
+Mean accuracy: None
+Standard deviation: None
+
+
+Model training and optimization time (seconds):
+1434.876133441925
+**************************************************

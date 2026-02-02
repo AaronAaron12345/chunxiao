@@ -1,0 +1,4 @@
+Removed Component,Accuracy,AUC
+feature_importance,0.8,0.6145833333333334
+half_features,0.8400000000000001,0.6909722222222223
+none,0.8,0.6180555555555556
