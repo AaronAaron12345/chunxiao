@@ -280,7 +280,7 @@ def progress_monitor(workers, total, start_time, stop_event):
         if current >= total:
             break
         
-        time.sleep(0.5)
+        time.sleep(5)  # 每5秒更新一次
     print()
 
 
