@@ -106,8 +106,12 @@ def paper_style_vae_augment(X_train, y_train, num_interpolation_points=5):
             optimizer.zero_grad()
             recon, mu, log_var = vae(X_tensor)
             
+            # 确保值在(0,1)范围内，避免BCE错误
+            recon_clamped = torch.clamp(recon, 1e-6, 1-1e-6)
+            target_clamped = torch.clamp(X_tensor, 1e-6, 1-1e-6)
+            
             # BCE重建损失 + KL损失 (论文使用)
-            recon_loss = F.binary_cross_entropy(recon, X_tensor, reduction='sum') / len(X_cls)
+            recon_loss = F.binary_cross_entropy(recon_clamped, target_clamped, reduction='sum') / len(X_cls)
             kl_loss = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp()) / len(X_cls)
             loss = recon_loss + kl_loss
             
