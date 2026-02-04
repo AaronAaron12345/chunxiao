@@ -313,7 +313,7 @@ class HyperNetEnsemble:
 
 
 class GPUWorker:
-    """GPU工作线程 - 大胆并行！"""
+    """GPU工作线程 - 优化并行度"""
     def __init__(self, gpu_id, config):
         self.gpu_id = gpu_id
         self.device = torch.device(f'cuda:{gpu_id}')
@@ -321,8 +321,8 @@ class GPUWorker:
         self.results = []
         self.processed_count = 0
         self.lock = threading.Lock()
-        # 大胆并行 - 每个GPU 27个线程！
-        self.n_threads = 27
+        # 每个GPU 8个线程（太多会内存争抢）
+        self.n_threads = 8
     
     def process_fold(self, fold_data):
         """处理单个fold"""
@@ -365,7 +365,8 @@ class GPUWorker:
         return result
     
     def process_batch(self, fold_batch):
-        """批处理 - 大胆并行27个线程"""
+        """批处理 - 8线程并行"""
+        print(f"\n[GPU {self.gpu_id}] 开始处理 {len(fold_batch)} 个folds...", flush=True)
         with ThreadPoolExecutor(max_workers=self.n_threads) as executor:
             list(executor.map(self.process_fold, fold_batch))
 
@@ -434,17 +435,17 @@ def main():
     for gpu_id in available_gpus:
         logger.info(f"  GPU {gpu_id}: {torch.cuda.get_device_name(gpu_id)}")
     
-    # 配置 - 真正的集成！
+    # 配置 - 优化版（减少计算量但保持集成效果）
     config = {
-        'n_estimators': 10,      # 10个超网络，相当于RF的10棵树
-        'hyper_hidden': 128,
-        'target_hidden': 48,
-        'lr': 0.002,
+        'n_estimators': 5,       # 5个超网络集成（足够了）
+        'hyper_hidden': 96,
+        'target_hidden': 32,
+        'lr': 0.005,
         'weight_decay': 0.001,
-        'dropout': 0.25,
-        'epochs': 200,
-        'vae_epochs': 100,
-        'num_interp': 5
+        'dropout': 0.2,
+        'epochs': 100,           # 减少epochs
+        'vae_epochs': 50,        # 减少VAE epochs
+        'num_interp': 3
     }
     
     logger.info(f"配置: {config}")
@@ -492,7 +493,7 @@ def main():
         gpu_id = available_gpus[i % len(available_gpus)]
         gpu_fold_batches[gpu_id].append(fold_data)
     
-    logger.info(f"并行策略: 6个GPU × 27线程/GPU = 162并行")
+    logger.info(f"并行策略: 6个GPU × 8线程/GPU = 48并行")
     logger.info(f"分配: {', '.join([f'GPU{g}={len(b)}' for g,b in gpu_fold_batches.items()])}")
     
     # 创建GPU工作器
