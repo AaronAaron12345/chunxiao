@@ -123,6 +123,7 @@ class GPUWorker:
         self.processed_count = 0
         self.current_acc = 0.0
         self.lock = threading.Lock()
+        self.n_threads = 4  # 每个GPU内部并行的线程数
     
     def compute_stats(self, X):
         """计算数据统计量"""
@@ -237,9 +238,10 @@ class GPUWorker:
         return result
     
     def process_batch(self, fold_batch):
-        """批处理多个fold"""
-        for fold_data in fold_batch:
-            self.process_fold(fold_data)
+        """批处理多个fold - 内部多线程并行"""
+        # 在同一个GPU上用多线程并行处理
+        with ThreadPoolExecutor(max_workers=self.n_threads) as executor:
+            list(executor.map(self.process_fold, fold_batch))
 
 
 def progress_monitor(workers, total, start_time, stop_event):
