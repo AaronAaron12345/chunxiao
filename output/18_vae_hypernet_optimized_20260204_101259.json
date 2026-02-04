@@ -1,0 +1,20 @@
+{
+  "experiment": "18_vae_hypernet_optimized",
+  "timestamp": "2026-02-04T10:13:46.783850",
+  "results": {
+    "rf_baseline": {
+      "accuracy": 0.8323076923076923,
+      "time": 7.64702296257019
+    },
+    "vae_augmented_rf": {
+      "accuracy": 0.8353846153846153,
+      "time": 12.213300943374634
+    },
+    "vae_hypernet": {
+      "accuracy": 0.6661538461538463,
+      "time": 26.966439247131348
+    }
+  },
+  "best_method": "VAE增强+RF",
+  "best_accuracy": 0.8353846153846153
+}
