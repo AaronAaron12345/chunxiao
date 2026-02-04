@@ -236,8 +236,12 @@ class VAEHyperNetFusion:
                 optimizer.zero_grad()
                 recon, mu, log_var = self.vae(batch)
                 
+                # 确保在[0,1]范围内，避免BCELoss错误
+                recon = torch.clamp(recon, 1e-6, 1-1e-6)
+                batch_clamped = torch.clamp(batch, 1e-6, 1-1e-6)
+                
                 # 论文: "binary cross-entropy reconstruction term with KL regularization"
-                recon_loss = nn.BCELoss()(recon, batch)
+                recon_loss = nn.BCELoss()(recon, batch_clamped)
                 kl_loss = -0.5 * torch.mean(1 + log_var - mu.pow(2) - log_var.exp())
                 
                 loss = recon_loss + kl_loss
