@@ -392,7 +392,7 @@ class GPUWorker:
         self.results = []
         self.processed_count = 0
         self.lock = threading.Lock()
-        self.n_threads = 8
+        self.n_threads = 16  # 增加线程数加速
     
     def process_fold(self, fold_data):
         """处理单个fold"""
@@ -501,18 +501,18 @@ def main():
     available_gpus = [i for i in GPU_IDS if i < n_gpus]
     logger.info(f"可用GPU: {available_gpus}")
     
-    # 配置 - 严格按照论文
+    # 配置 - 快速版本（先验证思路）
     config = {
-        'n_target_networks': 5,   # 目标网络数量 m
-        'hyper_hidden': 256,      # 超网络隐藏层
-        'target_hidden': 64,      # 目标网络隐藏层
-        'lr': 0.001,
+        'n_target_networks': 3,   # 减少目标网络数量
+        'hyper_hidden': 128,      # 减小
+        'target_hidden': 32,      # 减小
+        'lr': 0.005,              # 增大lr加速收敛
         'weight_decay': 0.0001,
-        'epochs': 100,
-        'vae_epochs': 50,         # 论文: 50 epochs
+        'epochs': 30,             # 大幅减少
+        'vae_epochs': 20,         # 大幅减少
     }
     
-    logger.info("配置（严格按照论文）:")
+    logger.info("配置（快速版本）:")
     logger.info(f"  VAE: hidden=512, latent=20, epochs={config['vae_epochs']}")
     logger.info(f"  插值: 5个均匀分布的内部点")
     logger.info(f"  目标网络数量: {config['n_target_networks']}")
