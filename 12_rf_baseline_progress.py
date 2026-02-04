@@ -1,16 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-12_rf_baseline_progress.py - 多GPU并行RF基线（带实时进度条）
+12_rf_baseline_progress.py - RF基线（CPU多进程并行，带进度条）
 ============================================================
-使用 VAE + GPU神经网络分类器 作为基线
-（RF不支持GPU，用神经网络替代以实现GPU加速）
+VAE + RandomForest 基线
 
-特点：
-1. 6块GPU并行处理
-2. 批处理多个fold提高GPU利用率
-3. 实时进度条显示
-
+RF不支持GPU，但在小数据集上比神经网络更准。
 运行: python 12_rf_baseline_progress.py
 """
 
@@ -20,19 +15,18 @@ import json
 import time
 import logging
 import warnings
-import threading
+import multiprocessing as mp
+from multiprocessing import Manager
 from datetime import datetime
 from itertools import combinations
 from pathlib import Path
-from queue import Queue
-from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
-import torch.optim as optim
 from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 
 warnings.filterwarnings('ignore')
@@ -44,11 +38,8 @@ OUTPUT_DIR = SCRIPT_DIR / 'output'
 LOG_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
 
-# GPU配置
-GPU_IDS = [0, 1, 2, 3, 4, 5]
 
-
-# ==================== 模型定义 ====================
+# ==================== VAE 数据增强 ====================
 class VAE(nn.Module):
     def __init__(self, input_dim, hidden_dim=64, latent_dim=2):
         super(VAE, self).__init__()
@@ -72,134 +63,97 @@ class VAE(nn.Module):
         return self.decoder(z), mu, log_var
 
 
-class MLPClassifier(nn.Module):
-    """GPU上的MLP分类器（替代RF）"""
-    def __init__(self, input_dim, hidden_dim=64, n_classes=2):
-        super(MLPClassifier, self).__init__()
-        self.net = nn.Sequential(
-            nn.Linear(input_dim, hidden_dim), nn.ReLU(), nn.Dropout(0.3),
-            nn.Linear(hidden_dim, hidden_dim), nn.ReLU(), nn.Dropout(0.3),
-            nn.Linear(hidden_dim, hidden_dim // 2), nn.ReLU(),
-            nn.Linear(hidden_dim // 2, n_classes)
+def vae_augment(X, y, vae_epochs=100, num_interp=5):
+    """VAE数据增强"""
+    X_aug_list = [X.copy()]
+    y_aug_list = [y.copy()]
+    
+    for cls in np.unique(y):
+        X_cls = X[y == cls]
+        if len(X_cls) < 2:
+            continue
+        
+        vae = VAE(X_cls.shape[1], 64, 2)
+        optimizer = torch.optim.Adam(vae.parameters(), lr=0.001)
+        X_tensor = torch.FloatTensor(X_cls)
+        
+        vae.train()
+        for _ in range(vae_epochs):
+            optimizer.zero_grad()
+            recon, mu, log_var = vae(X_tensor)
+            recon_loss = nn.MSELoss()(recon, X_tensor)
+            kl_loss = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
+            loss = recon_loss + 0.001 * kl_loss / len(X_cls)
+            loss.backward()
+            optimizer.step()
+        
+        vae.eval()
+        with torch.no_grad():
+            recon = vae(X_tensor)[0].numpy()
+        
+        for alpha in np.linspace(0.1, 0.9, num_interp):
+            X_aug_list.append(alpha * X_cls + (1 - alpha) * recon)
+            y_aug_list.append(np.full(len(X_cls), cls))
+    
+    return np.vstack(X_aug_list), np.hstack(y_aug_list)
+
+
+# ==================== 单fold处理 ====================
+def process_fold_rf(args):
+    """处理单个fold"""
+    fold_info, X, y, config, counter, lock = args
+    fold_idx, (train_idx, test_idx) = fold_info
+    
+    try:
+        X_train, X_test = X[train_idx], X[test_idx]
+        y_train, y_test = y[train_idx], y[test_idx]
+        
+        # 标准化
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+        
+        # VAE增强
+        X_aug, y_aug = vae_augment(X_train_scaled, y_train, config['vae_epochs'], config['num_interp'])
+        
+        # 随机森林
+        clf = RandomForestClassifier(
+            n_estimators=config['n_estimators'],
+            max_depth=config['max_depth'],
+            random_state=42,
+            n_jobs=1
         )
+        clf.fit(X_aug, y_aug)
+        
+        y_pred = clf.predict(X_test_scaled)
+        
+        result = {
+            'fold_idx': fold_idx,
+            'accuracy': accuracy_score(y_test, y_pred),
+            'y_true': y_test.tolist(),
+            'y_pred': y_pred.tolist()
+        }
+        
+    except Exception as e:
+        result = {'fold_idx': fold_idx, 'accuracy': 0.0, 'error': str(e)}
     
-    def forward(self, x):
-        return self.net(x)
+    # 更新进度计数器
+    with lock:
+        counter.value += 1
+    
+    return result
 
 
-class GPUWorker:
-    """GPU工作线程"""
-    def __init__(self, gpu_id, config):
-        self.gpu_id = gpu_id
-        self.device = torch.device(f'cuda:{gpu_id}')
-        self.config = config
-        self.results = []
-        self.processed_count = 0
-        self.lock = threading.Lock()
-    
-    def vae_augment(self, X, y):
-        """GPU上的VAE增强"""
-        X_aug_list = [torch.FloatTensor(X).to(self.device)]
-        y_aug_list = [torch.LongTensor(y).to(self.device)]
-        
-        for cls in np.unique(y):
-            X_cls = X[y == cls]
-            if len(X_cls) < 2:
-                continue
-            
-            vae = VAE(X_cls.shape[1], 64, 2).to(self.device)
-            optimizer = torch.optim.Adam(vae.parameters(), lr=0.001)
-            X_tensor = torch.FloatTensor(X_cls).to(self.device)
-            
-            vae.train()
-            for _ in range(self.config['vae_epochs']):
-                optimizer.zero_grad()
-                recon, mu, log_var = vae(X_tensor)
-                recon_loss = nn.MSELoss()(recon, X_tensor)
-                kl_loss = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
-                loss = recon_loss + 0.001 * kl_loss / len(X_cls)
-                loss.backward()
-                optimizer.step()
-            
-            vae.eval()
-            with torch.no_grad():
-                recon = vae(X_tensor)[0]
-            
-            for alpha in np.linspace(0.1, 0.9, self.config['num_interp']):
-                aug_data = alpha * X_tensor + (1 - alpha) * recon
-                X_aug_list.append(aug_data)
-                y_aug_list.append(torch.full((len(X_cls),), cls, dtype=torch.long, device=self.device))
-        
-        return torch.cat(X_aug_list), torch.cat(y_aug_list)
-    
-    def process_fold(self, fold_data):
-        """处理单个fold"""
-        fold_idx, X_train, y_train, X_test, y_test = fold_data
-        
-        try:
-            # VAE增强
-            X_aug, y_aug = self.vae_augment(X_train, y_train)
-            
-            # MLP分类器
-            n_classes = len(np.unique(y_train))
-            model = MLPClassifier(X_train.shape[1], self.config['hidden_dim'], n_classes).to(self.device)
-            optimizer = optim.Adam(model.parameters(), lr=self.config['lr'], weight_decay=self.config['weight_decay'])
-            criterion = nn.CrossEntropyLoss()
-            
-            # 训练
-            model.train()
-            for _ in range(self.config['epochs']):
-                optimizer.zero_grad()
-                outputs = model(X_aug)
-                loss = criterion(outputs, y_aug)
-                loss.backward()
-                optimizer.step()
-            
-            # 评估
-            model.eval()
-            X_test_t = torch.FloatTensor(X_test).to(self.device)
-            with torch.no_grad():
-                outputs = model(X_test_t)
-                y_pred = outputs.argmax(dim=1).cpu().numpy()
-            
-            acc = accuracy_score(y_test, y_pred)
-            result = {
-                'fold_idx': fold_idx,
-                'accuracy': acc,
-                'y_true': y_test.tolist(),
-                'y_pred': y_pred.tolist(),
-                'gpu_id': self.gpu_id
-            }
-        except Exception as e:
-            result = {'fold_idx': fold_idx, 'accuracy': 0.0, 'error': str(e), 'gpu_id': self.gpu_id}
-        
-        with self.lock:
-            self.results.append(result)
-            self.processed_count += 1
-        
-        return result
-    
-    def process_batch(self, fold_batch):
-        """批处理多个fold"""
-        for fold_data in fold_batch:
-            self.process_fold(fold_data)
-
-
-def progress_monitor(workers, total, start_time, stop_event):
-    """进度监控线程 - 按10%百分比更新"""
-    last_pct_10 = -1  # 上次打印的10%档位
-    
+def progress_monitor(counter, total, start_time, stop_event):
+    """进度监控进程 - 单行频繁更新"""
     while not stop_event.is_set():
-        current = sum(w.processed_count for w in workers)
+        current = counter.value
         elapsed = time.time() - start_time
-        pct = current / total * 100
-        current_pct_10 = int(pct // 10)  # 当前10%档位
         
-        # 只在达到新的10%档位时更新
-        if current_pct_10 > last_pct_10 or current >= total:
-            last_pct_10 = current_pct_10
-            rate = current / elapsed if elapsed > 0 else 0
+        if elapsed > 0:
+            rate = current / elapsed
             eta = (total - current) / rate if rate > 0 else 0
+            pct = current / total * 100
             
             bar_len = 20
             filled = int(bar_len * current / total)
@@ -210,8 +164,8 @@ def progress_monitor(workers, total, start_time, stop_event):
         if current >= total:
             break
         
-        time.sleep(1)
-    print()  # 结束换行
+        time.sleep(0.5)
+    print()
 
 
 def main():
@@ -230,29 +184,15 @@ def main():
     logger = logging.getLogger(__name__)
     
     logger.info("=" * 60)
-    logger.info("12_rf_baseline_progress.py - 多GPU并行基线（MLP替代RF）")
+    logger.info("12_rf_baseline_progress.py - VAE + RF 基线 (CPU多进程)")
     logger.info("=" * 60)
-    
-    # 检查GPU
-    if not torch.cuda.is_available():
-        logger.error("CUDA不可用!")
-        return
-    
-    n_gpus = torch.cuda.device_count()
-    available_gpus = [i for i in GPU_IDS if i < n_gpus]
-    logger.info(f"可用GPU: {available_gpus}")
-    
-    for gpu_id in available_gpus:
-        logger.info(f"  GPU {gpu_id}: {torch.cuda.get_device_name(gpu_id)}")
     
     # 配置
     config = {
         'vae_epochs': 100,
         'num_interp': 5,
-        'hidden_dim': 128,
-        'lr': 0.001,
-        'weight_decay': 0.0001,
-        'epochs': 200
+        'n_estimators': 150,
+        'max_depth': 5
     }
     
     logger.info(f"配置: {config}")
@@ -275,69 +215,53 @@ def main():
     
     logger.info(f"Leave-{leave_p_out}-Out: {n_folds} 个 folds")
     
-    # 准备fold数据（预先标准化）
-    fold_datas = []
+    fold_infos = []
     for fold_idx, test_idx in enumerate(test_combos):
         test_idx = np.array(test_idx)
         train_idx = np.setdiff1d(all_indices, test_idx)
-        
-        X_train, X_test = X[train_idx], X[test_idx]
-        y_train, y_test = y[train_idx], y[test_idx]
-        
-        scaler = StandardScaler()
-        X_train_scaled = scaler.fit_transform(X_train)
-        X_test_scaled = scaler.transform(X_test)
-        
-        fold_datas.append((fold_idx, X_train_scaled, y_train, X_test_scaled, y_test))
+        fold_infos.append((fold_idx, (train_idx, test_idx)))
     
-    # 分配fold到各个GPU
-    gpu_fold_batches = {gpu_id: [] for gpu_id in available_gpus}
-    for i, fold_data in enumerate(fold_datas):
-        gpu_id = available_gpus[i % len(available_gpus)]
-        gpu_fold_batches[gpu_id].append(fold_data)
+    # 多进程设置
+    n_processes = min(mp.cpu_count(), 64)
+    logger.info(f"使用 {n_processes} 个CPU进程")
     
-    logger.info(f"分配: {', '.join([f'GPU{g}={len(b)}' for g,b in gpu_fold_batches.items()])}")
-    
-    # 创建GPU工作器
-    workers = [GPUWorker(gpu_id, config) for gpu_id in available_gpus]
+    # 创建共享计数器
+    manager = Manager()
+    counter = manager.Value('i', 0)
+    lock = manager.Lock()
+    stop_event = manager.Event()
     
     start_time = time.time()
-    stop_event = threading.Event()
     
-    # 启动进度监控
-    monitor = threading.Thread(target=progress_monitor, args=(workers, n_folds, start_time, stop_event))
+    # 启动进度监控进程
+    monitor = mp.Process(target=progress_monitor, args=(counter, n_folds, start_time, stop_event))
     monitor.start()
     
-    # 多线程并行处理各GPU
-    logger.info("开始多GPU并行处理...")
+    # 准备参数
+    args_list = [(fold_info, X, y, config, counter, lock) for fold_info in fold_infos]
+    
+    # 并行处理
+    logger.info("开始CPU多进程处理...")
     print()
     
-    with ThreadPoolExecutor(max_workers=len(available_gpus)) as executor:
-        futures = []
-        for worker in workers:
-            batch = gpu_fold_batches[worker.gpu_id]
-            futures.append(executor.submit(worker.process_batch, batch))
-        
-        for f in futures:
-            f.result()
+    with mp.Pool(processes=n_processes) as pool:
+        results = pool.map(process_fold_rf, args_list)
     
+    # 停止进度监控
     stop_event.set()
     monitor.join(timeout=2)
     
     elapsed_time = time.time() - start_time
     
-    # 收集结果
-    all_results = []
-    for worker in workers:
-        all_results.extend(worker.results)
-    
-    valid_results = [r for r in all_results if 'error' not in r]
-    error_results = [r for r in all_results if 'error' in r]
+    # 统计结果
+    valid_results = [r for r in results if 'error' not in r]
+    error_results = [r for r in results if 'error' in r]
     accuracies = [r['accuracy'] for r in valid_results]
     
     mean_acc = np.mean(accuracies) * 100
     std_acc = np.std(accuracies) * 100
     
+    # 汇总预测
     all_y_true, all_y_pred = [], []
     for r in valid_results:
         all_y_true.extend(r['y_true'])
@@ -347,7 +271,7 @@ def main():
     
     print()
     logger.info("=" * 60)
-    logger.info("[结果] VAE + MLP 多GPU并行基线")
+    logger.info("[结果] VAE + RandomForest 基线")
     logger.info("=" * 60)
     logger.info(f"  平均准确率: {mean_acc:.2f}% ± {std_acc:.2f}%")
     logger.info(f"  整体准确率: {overall_acc:.2f}%")
@@ -355,14 +279,13 @@ def main():
     logger.info(f"  失败folds: {len(error_results)}")
     logger.info(f"  总用时: {elapsed_time:.1f}秒")
     logger.info(f"  速度: {n_folds / elapsed_time:.1f} folds/秒")
-    logger.info(f"  GPU分布: {dict((w.gpu_id, w.processed_count) for w in workers)}")
     
     # 保存结果
     result_file = OUTPUT_DIR / f'12_rf_baseline_{timestamp}.json'
     
     result_data = {
-        'experiment': '12_rf_baseline (VAE + MLP 多GPU)',
-        'method': 'VAE数据增强 + MLP分类器 (多GPU并行)',
+        'experiment': '12_rf_baseline (VAE + RF)',
+        'method': 'VAE数据增强 + RandomForest (CPU多进程)',
         'timestamp': datetime.now().isoformat(),
         'mean_accuracy': mean_acc / 100,
         'std_accuracy': std_acc / 100,
@@ -371,7 +294,7 @@ def main():
         'folds_per_second': n_folds / elapsed_time,
         'n_samples': n_samples,
         'n_folds': n_folds,
-        'n_gpus': len(available_gpus),
+        'n_processes': n_processes,
         'config': config,
         'successful_folds': len(valid_results),
         'failed_folds': len(error_results)
@@ -385,4 +308,5 @@ def main():
 
 
 if __name__ == '__main__':
+    mp.set_start_method('spawn', force=True)
     main()

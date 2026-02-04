@@ -243,20 +243,15 @@ class GPUWorker:
 
 
 def progress_monitor(workers, total, start_time, stop_event):
-    """进度监控线程 - 按10%百分比更新"""
-    last_pct_10 = -1  # 上次打印的10%档位
-    
+    """进度监控线程 - 单行频繁更新"""
     while not stop_event.is_set():
         current = sum(w.processed_count for w in workers)
         elapsed = time.time() - start_time
-        pct = current / total * 100
-        current_pct_10 = int(pct // 10)  # 当前10%档位
         
-        # 只在达到新的10%档位时更新
-        if current_pct_10 > last_pct_10 or current >= total:
-            last_pct_10 = current_pct_10
-            rate = current / elapsed if elapsed > 0 else 0
+        if elapsed > 0 and current > 0:
+            rate = current / elapsed
             eta = (total - current) / rate if rate > 0 else 0
+            pct = current / total * 100
             
             # 计算总体准确率
             all_valid = []
@@ -279,8 +274,8 @@ def progress_monitor(workers, total, start_time, stop_event):
         if current >= total:
             break
         
-        time.sleep(1)
-    print()  # 结束换行
+        time.sleep(0.5)
+    print()
 
 
 def main():
