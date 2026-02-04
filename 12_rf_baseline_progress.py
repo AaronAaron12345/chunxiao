@@ -186,31 +186,32 @@ class GPUWorker:
 
 
 def progress_monitor(workers, total, start_time, stop_event):
-    """进度监控线程"""
+    """进度监控线程 - 按10%百分比更新"""
+    last_pct_10 = -1  # 上次打印的10%档位
+    
     while not stop_event.is_set():
         current = sum(w.processed_count for w in workers)
         elapsed = time.time() - start_time
+        pct = current / total * 100
+        current_pct_10 = int(pct // 10)  # 当前10%档位
         
-        if elapsed > 0:
-            rate = current / elapsed
+        # 只在达到新的10%档位时更新
+        if current_pct_10 > last_pct_10 or current >= total:
+            last_pct_10 = current_pct_10
+            rate = current / elapsed if elapsed > 0 else 0
             eta = (total - current) / rate if rate > 0 else 0
-            pct = current / total * 100
             
-            bar_len = 40
+            bar_len = 20
             filled = int(bar_len * current / total)
             bar = '█' * filled + '░' * (bar_len - filled)
             
-            gpu_counts = [f"G{w.gpu_id}:{w.processed_count}" for w in workers]
-            gpu_str = ' '.join(gpu_counts)
-            
-            print(f'\r[{bar}] {current}/{total} ({pct:.1f}%) | '
-                  f'{rate:.1f}/s | ETA: {eta:.0f}s | {gpu_str}', end='', flush=True)
+            print(f'\r[{bar}] {current}/{total} ({pct:.0f}%) | {rate:.1f}/s | ETA:{eta:.0f}s', end='', flush=True)
         
         if current >= total:
             break
         
-        time.sleep(5)  # 每5秒更新一次
-    print()
+        time.sleep(1)
+    print()  # 结束换行
 
 
 def main():
