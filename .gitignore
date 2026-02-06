@@ -1,0 +1,14 @@
+# 大文件和不需要的文件
+*.zip
+*.docx
+*.pdf
+*.pth
+*.joblib
+*.npz
+*.eps
+*.png
+.DS_Store
+__pycache__/
+.idea/
+.venv/
+*.pyc
