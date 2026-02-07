@@ -1,0 +1,33 @@
+{
+  "experiment": "17_vae_hypernet_final",
+  "timestamp": "2026-02-04T10:11:34.246131",
+  "dataset": {
+    "n_samples": 26,
+    "n_features": 4,
+    "classes": [
+      "PCa",
+      "non-PCa"
+    ]
+  },
+  "results": {
+    "rf_accuracy": 0.8323076923076923,
+    "rf_time": 7.875855207443237,
+    "vae_hnf_accuracy": 0.5953846153846154,
+    "vae_hnf_time": 82.37723898887634,
+    "improvement": -0.23692307692307688
+  },
+  "config": {
+    "n_target_networks": 7,
+    "hyper_hidden": 256,
+    "target_hidden": 64,
+    "lr": 0.002,
+    "weight_decay": 0.01,
+    "epochs": 60,
+    "vae_epochs": 40,
+    "vae_hidden": 128,
+    "vae_latent": 10
+  },
+  "n_folds": 325,
+  "successful_folds": 325,
+  "failed_folds": 0
+}

@@ -1,0 +1,25 @@
+{
+  "experiment": "20_final_analysis",
+  "timestamp": "2026-02-04T10:18:48.729508",
+  "dataset": {
+    "n_samples": 26,
+    "n_features": 4,
+    "n_folds": 325
+  },
+  "results": {
+    "Random Forest": {
+      "accuracy": 83.23076923076923,
+      "time": 7.277792692184448
+    },
+    "VAE-HyperNetFusion (推荐)": {
+      "accuracy": 81.23076923076923,
+      "time": 12.223380088806152
+    },
+    "Gradient Boosting": {
+      "accuracy": 78.3076923076923,
+      "time": 5.860158205032349
+    }
+  },
+  "best_method": "Random Forest",
+  "best_accuracy": 0.8323076923076923
+}

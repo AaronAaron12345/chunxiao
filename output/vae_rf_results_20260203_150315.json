@@ -1,0 +1,24 @@
+{
+  "mean_accuracy": 0.8276923076923077,
+  "std_accuracy": 0.26224339387892326,
+  "overall_accuracy": 0.8276923076923077,
+  "elapsed_time": 93.14493703842163,
+  "config": {
+    "vae_latent_dim": 2,
+    "vae_hidden_dim": 64,
+    "vae_epochs": 50,
+    "vae_lr": 0.001,
+    "vae_kl_weight": 0.5,
+    "num_interpolation_points": 5,
+    "rf_n_estimators_range": [
+      100,
+      200
+    ],
+    "rf_max_depth_range": [
+      1,
+      10
+    ],
+    "rf_bayes_n_iter": 30,
+    "leave_p_out": 2
+  }
+}

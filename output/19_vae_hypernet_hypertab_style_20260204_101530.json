@@ -1,0 +1,20 @@
+{
+  "experiment": "19_vae_hypernet_hypertab_style",
+  "timestamp": "2026-02-04T10:16:48.380573",
+  "results": {
+    "rf_baseline": {
+      "accuracy": 0.8323076923076923,
+      "time": 7.174391984939575
+    },
+    "vae_augmented_rf": {
+      "accuracy": 0.8123076923076923,
+      "time": 11.755376100540161
+    },
+    "vae_hypertab_style": {
+      "accuracy": 0.6569230769230769,
+      "time": 58.86826300621033
+    }
+  },
+  "best_method": "RF基线",
+  "best_accuracy": 0.8323076923076923
+}
