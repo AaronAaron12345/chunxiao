@@ -3,15 +3,15 @@
 63_replot_figures.py - 重新绘制论文图表 (使用Optuna优化后的VAE-HNF数据)
 
 == 生成的图表 ==
-  fig1_roc_curves.png/eps     — ROC Curves (haberman, 二分类)
-  fig2_pr_curves.png/eps      — Precision-Recall Curves (haberman)
+  fig1_roc_curves.png/eps     — ROC Curves (prostate, 二分类)
+  fig2_pr_curves.png/eps      — Precision-Recall Curves (prostate)
   fig3_acc_vs_n.png/eps       — Model Accuracy vs. Dataset Size (n)
   fig4_acc_vs_d.png/eps       — Model Accuracy vs. Number of Features (d)
   fig5_acc_vs_k.png/eps       — Model Accuracy vs. Number of Target Classes (k)
 
 == 数据来源 ==
   RF/XGBoost/TabPFN/HyperTab/TPOT: 58_results_*.json (5-fold CV)
-  VAE-HNF: 用 Optuna 最优参数重新在 haberman 上跑 (获取y_proba);
+  VAE-HNF: 用 Optuna 最优参数重新在 prostate 上跑 (获取y_proba);
            fig3/4/5的准确率用 62_ablation_v2 结果
 
 == 执行 ==
@@ -468,14 +468,14 @@ def plot_all(output_dir):
     ds_names = list(summary.keys())
 
     # ==================================================================
-    # 图1 & 图2: ROC & PR Curves (haberman — 二分类)
+    # 图1 & 图2: ROC & PR Curves (prostate — 二分类, VAE-HNF最优)
     # ==================================================================
-    roc_ds = 'haberman'
+    roc_ds = 'prostate'
     print(f"\n重新跑 VAE-HNF on {roc_ds} (Optuna params) 以获取 y_proba...")
-    ds_id_hab = 8  # haberman is dataset #8
+    ds_id_roc = 0  # prostate is dataset #0
 
     device = 'cuda:1' if torch.cuda.is_available() else 'cpu'
-    hnf_y_true, hnf_y_proba = run_vae_hnf_for_roc(ds_id_hab, device=device)
+    hnf_y_true, hnf_y_proba = run_vae_hnf_for_roc(ds_id_roc, device=device)
 
     # 更新 summary 中 VAE-HNF 的 y_true/y_proba
     summary[roc_ds]['VAE-HNF']['y_true']  = hnf_y_true.tolist()
@@ -495,7 +495,7 @@ def plot_all(output_dir):
                 linewidth=LW[mn], label=f'{mn} (AUC={ra:.3f})')
     ax.plot([0, 1], [0, 1], 'k--', alpha=0.4, label='Random Guess')
     ax.set(xlabel='False Positive Rate', ylabel='True Positive Rate',
-           title=f'ROC Curves — {roc_ds.capitalize()} Dataset',
+           title=f'ROC Curves — Prostate Cancer Dataset',
            xlim=[0, 1], ylim=[0, 1.05])
     ax.legend(loc='lower right', framealpha=0.9)
     ax.grid(True, alpha=0.3)
@@ -518,7 +518,7 @@ def plot_all(output_dir):
         ax.plot(re, pr, color=COLORS[mn], linestyle=LS[mn],
                 linewidth=LW[mn], label=f'{mn} (AP={ap:.3f})')
     ax.set(xlabel='Recall', ylabel='Precision',
-           title=f'Precision-Recall Curves — {roc_ds.capitalize()} Dataset')
+           title=f'Precision-Recall Curves — Prostate Cancer Dataset')
     ax.legend(loc='best', framealpha=0.9)
     ax.grid(True, alpha=0.3)
     fig.tight_layout()
