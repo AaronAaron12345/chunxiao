@@ -378,17 +378,22 @@ def plot_all(output_dir):
     import matplotlib.pyplot as plt
 
     plt.rcParams.update({
-        'font.size': 22,
-        'axes.titlesize': 26,
-        'axes.labelsize': 24,
-        'xtick.labelsize': 20,
-        'ytick.labelsize': 20,
-        'legend.fontsize': 18,
-        'legend.title_fontsize': 20,
+        'font.size': 28,
+        'axes.titlesize': 32,
+        'axes.labelsize': 30,
+        'xtick.labelsize': 26,
+        'ytick.labelsize': 26,
+        'legend.fontsize': 22,
+        'legend.title_fontsize': 24,
         'figure.dpi': 150,
         'savefig.dpi': 300,
-        'lines.linewidth': 2.5,
-        'lines.markersize': 10,
+        'lines.linewidth': 3.0,
+        'lines.markersize': 14,
+        'axes.linewidth': 2.0,
+        'xtick.major.width': 1.5,
+        'ytick.major.width': 1.5,
+        'xtick.major.size': 6,
+        'ytick.major.size': 6,
     })
 
     # ── 加载58的结果JSON (RF/XGBoost/TabPFN/HyperTab/TPOT的y_true/y_proba) ──
@@ -419,12 +424,12 @@ def plot_all(output_dir):
         'VAE-HNF':  '-'
     }
     LW = {
-        'RF':       2.5,
-        'XGBoost':  2.5,
-        'TabPFN':   2.5,
-        'HyperTab': 2.2,
-        'TPOT':     2.2,
-        'VAE-HNF':  4.0
+        'RF':       3.0,
+        'XGBoost':  3.0,
+        'TabPFN':   3.0,
+        'HyperTab': 2.8,
+        'TPOT':     2.8,
+        'VAE-HNF':  5.0
     }
     MK = {
         'RF':       's',
@@ -474,18 +479,31 @@ def plot_all(output_dir):
     # 图1 & 图2: ROC & PR Curves (prostate — 二分类, VAE-HNF最优)
     # ==================================================================
     roc_ds = 'prostate'
-    print(f"\n重新跑 VAE-HNF on {roc_ds} (Optuna params) 以获取 y_proba...")
     ds_id_roc = 0  # prostate is dataset #0
+    cache_file = os.path.join(output_dir, '63_prostate_cache.json')
 
-    device = 'cuda:1' if torch.cuda.is_available() else 'cpu'
-    hnf_y_true, hnf_y_proba = run_vae_hnf_for_roc(ds_id_roc, device=device)
+    if os.path.exists(cache_file):
+        print(f"\n从缓存加载 VAE-HNF on {roc_ds} 的 y_proba (跳过重跑)...")
+        with open(cache_file) as f:
+            cache = json.load(f)
+        hnf_y_true = np.array(cache['y_true'])
+        hnf_y_proba = np.array(cache['y_proba'])
+    else:
+        print(f"\n首次运行: VAE-HNF on {roc_ds} (Optuna params) 以获取 y_proba...")
+        device = 'cuda:1' if torch.cuda.is_available() else 'cpu'
+        hnf_y_true, hnf_y_proba = run_vae_hnf_for_roc(ds_id_roc, device=device)
+        # 保存缓存
+        with open(cache_file, 'w') as f:
+            json.dump({'y_true': hnf_y_true.tolist(),
+                       'y_proba': hnf_y_proba.tolist()}, f)
+        print(f"  缓存已保存到: {cache_file}")
 
     # 更新 summary 中 VAE-HNF 的 y_true/y_proba
-    summary[roc_ds]['VAE-HNF']['y_true']  = hnf_y_true.tolist()
-    summary[roc_ds]['VAE-HNF']['y_proba'] = hnf_y_proba.tolist()
+    summary[roc_ds]['VAE-HNF']['y_true']  = hnf_y_true.tolist() if isinstance(hnf_y_true, np.ndarray) else hnf_y_true
+    summary[roc_ds]['VAE-HNF']['y_proba'] = hnf_y_proba.tolist() if isinstance(hnf_y_proba, np.ndarray) else hnf_y_proba
 
     # ── 图1: ROC ──
-    fig, ax = plt.subplots(figsize=(10, 8))
+    fig, ax = plt.subplots(figsize=(12, 10))
     for mn in MODEL_ORDER:
         d = summary[roc_ds].get(mn, {})
         yt, yp = d.get('y_true', []), d.get('y_proba', [])
@@ -509,7 +527,7 @@ def plot_all(output_dir):
     print("  图1 ROC ✓")
 
     # ── 图2: PR ──
-    fig, ax = plt.subplots(figsize=(10, 8))
+    fig, ax = plt.subplots(figsize=(12, 10))
     for mn in MODEL_ORDER:
         d = summary[roc_ds].get(mn, {})
         yt, yp = d.get('y_true', []), d.get('y_proba', [])
@@ -533,15 +551,15 @@ def plot_all(output_dir):
     # ==================================================================
     # 图3: Accuracy vs Dataset Size (n)
     # ==================================================================
-    fig, ax = plt.subplots(figsize=(12, 8))
+    fig, ax = plt.subplots(figsize=(14, 10))
     ds_sorted = sorted(ds_names,
                         key=lambda d: summary[d].get('meta', {}).get('n_samples', 0))
     ns = [summary[d]['meta']['n_samples'] for d in ds_sorted]
     for mn in MODEL_ORDER:
         accs = [summary[d].get(mn, {}).get('mean', 0) for d in ds_sorted]
         ax.plot(ns, accs, color=COLORS[mn], linestyle=LS[mn], linewidth=LW[mn],
-                marker=MK[mn], markersize=12, label=mn, markeredgecolor='white',
-                markeredgewidth=0.8)
+                marker=MK[mn], markersize=16, label=mn, markeredgecolor='white',
+                markeredgewidth=1.0)
     ax.set(xlabel='Number of Records (n)', ylabel='Accuracy (%)',
            title='Model Accuracy vs. Dataset Size (n)')
     ax.set_xscale('log')
@@ -556,15 +574,15 @@ def plot_all(output_dir):
     # ==================================================================
     # 图4: Accuracy vs Number of Features (d)
     # ==================================================================
-    fig, ax = plt.subplots(figsize=(12, 8))
+    fig, ax = plt.subplots(figsize=(14, 10))
     ds_fd = sorted(ds_names,
                    key=lambda d: summary[d].get('meta', {}).get('n_features', 0))
     ds_vals = [summary[d]['meta']['n_features'] for d in ds_fd]
     for mn in MODEL_ORDER:
         accs = [summary[d].get(mn, {}).get('mean', 0) for d in ds_fd]
         ax.plot(ds_vals, accs, color=COLORS[mn], linestyle=LS[mn], linewidth=LW[mn],
-                marker=MK[mn], markersize=12, label=mn, markeredgecolor='white',
-                markeredgewidth=0.8)
+                marker=MK[mn], markersize=16, label=mn, markeredgecolor='white',
+                markeredgewidth=1.0)
     ax.set(xlabel='Number of Features (d)', ylabel='Accuracy (%)',
            title='Model Accuracy vs. Number of Features (d)')
     ax.legend(loc='best', title='Model', framealpha=0.9)
@@ -578,7 +596,7 @@ def plot_all(output_dir):
     # ==================================================================
     # 图5: Accuracy vs Number of Target Classes (k)
     # ==================================================================
-    fig, ax = plt.subplots(figsize=(12, 8))
+    fig, ax = plt.subplots(figsize=(14, 10))
     ds_kd = sorted(ds_names,
                    key=lambda d: summary[d].get('meta', {}).get('n_classes', 0))
     kvs = [summary[d]['meta']['n_classes'] for d in ds_kd]
@@ -591,8 +609,8 @@ def plot_all(output_dir):
             avg_a.append(np.mean(a_k))
             std_a.append(np.std(a_k) if len(a_k) > 1 else 0)
         ax.plot(uk, avg_a, color=COLORS[mn], linestyle=LS[mn], linewidth=LW[mn],
-                marker=MK[mn], markersize=12, label=mn, markeredgecolor='white',
-                markeredgewidth=0.8)
+                marker=MK[mn], markersize=16, label=mn, markeredgecolor='white',
+                markeredgewidth=1.0)
         if any(s > 0 for s in std_a):
             ax.fill_between(uk, [a - s for a, s in zip(avg_a, std_a)],
                             [a + s for a, s in zip(avg_a, std_a)],
