@@ -378,14 +378,17 @@ def plot_all(output_dir):
     import matplotlib.pyplot as plt
 
     plt.rcParams.update({
-        'font.size': 14,
-        'axes.titlesize': 18,
-        'axes.labelsize': 16,
-        'xtick.labelsize': 13,
-        'ytick.labelsize': 13,
-        'legend.fontsize': 12,
+        'font.size': 22,
+        'axes.titlesize': 26,
+        'axes.labelsize': 24,
+        'xtick.labelsize': 20,
+        'ytick.labelsize': 20,
+        'legend.fontsize': 18,
+        'legend.title_fontsize': 20,
         'figure.dpi': 150,
         'savefig.dpi': 300,
+        'lines.linewidth': 2.5,
+        'lines.markersize': 10,
     })
 
     # ── 加载58的结果JSON (RF/XGBoost/TabPFN/HyperTab/TPOT的y_true/y_proba) ──
@@ -416,12 +419,12 @@ def plot_all(output_dir):
         'VAE-HNF':  '-'
     }
     LW = {
-        'RF':       1.8,
-        'XGBoost':  1.8,
-        'TabPFN':   1.8,
-        'HyperTab': 1.5,
-        'TPOT':     1.5,
-        'VAE-HNF':  3.0
+        'RF':       2.5,
+        'XGBoost':  2.5,
+        'TabPFN':   2.5,
+        'HyperTab': 2.2,
+        'TPOT':     2.2,
+        'VAE-HNF':  4.0
     }
     MK = {
         'RF':       's',
@@ -482,7 +485,7 @@ def plot_all(output_dir):
     summary[roc_ds]['VAE-HNF']['y_proba'] = hnf_y_proba.tolist()
 
     # ── 图1: ROC ──
-    fig, ax = plt.subplots(figsize=(9, 7))
+    fig, ax = plt.subplots(figsize=(10, 8))
     for mn in MODEL_ORDER:
         d = summary[roc_ds].get(mn, {})
         yt, yp = d.get('y_true', []), d.get('y_proba', [])
@@ -493,7 +496,7 @@ def plot_all(output_dir):
         ra = auc(fpr, tpr)
         ax.plot(fpr, tpr, color=COLORS[mn], linestyle=LS[mn],
                 linewidth=LW[mn], label=f'{mn} (AUC={ra:.3f})')
-    ax.plot([0, 1], [0, 1], 'k--', alpha=0.4, label='Random Guess')
+    ax.plot([0, 1], [0, 1], 'k--', alpha=0.4, linewidth=2.0, label='Random Guess')
     ax.set(xlabel='False Positive Rate', ylabel='True Positive Rate',
            title=f'ROC Curves — Prostate Cancer Dataset',
            xlim=[0, 1], ylim=[0, 1.05])
@@ -506,7 +509,7 @@ def plot_all(output_dir):
     print("  图1 ROC ✓")
 
     # ── 图2: PR ──
-    fig, ax = plt.subplots(figsize=(9, 7))
+    fig, ax = plt.subplots(figsize=(10, 8))
     for mn in MODEL_ORDER:
         d = summary[roc_ds].get(mn, {})
         yt, yp = d.get('y_true', []), d.get('y_proba', [])
@@ -530,15 +533,15 @@ def plot_all(output_dir):
     # ==================================================================
     # 图3: Accuracy vs Dataset Size (n)
     # ==================================================================
-    fig, ax = plt.subplots(figsize=(10, 7))
+    fig, ax = plt.subplots(figsize=(12, 8))
     ds_sorted = sorted(ds_names,
                         key=lambda d: summary[d].get('meta', {}).get('n_samples', 0))
     ns = [summary[d]['meta']['n_samples'] for d in ds_sorted]
     for mn in MODEL_ORDER:
         accs = [summary[d].get(mn, {}).get('mean', 0) for d in ds_sorted]
         ax.plot(ns, accs, color=COLORS[mn], linestyle=LS[mn], linewidth=LW[mn],
-                marker=MK[mn], markersize=7, label=mn, markeredgecolor='white',
-                markeredgewidth=0.5)
+                marker=MK[mn], markersize=12, label=mn, markeredgecolor='white',
+                markeredgewidth=0.8)
     ax.set(xlabel='Number of Records (n)', ylabel='Accuracy (%)',
            title='Model Accuracy vs. Dataset Size (n)')
     ax.set_xscale('log')
@@ -553,15 +556,15 @@ def plot_all(output_dir):
     # ==================================================================
     # 图4: Accuracy vs Number of Features (d)
     # ==================================================================
-    fig, ax = plt.subplots(figsize=(10, 7))
+    fig, ax = plt.subplots(figsize=(12, 8))
     ds_fd = sorted(ds_names,
                    key=lambda d: summary[d].get('meta', {}).get('n_features', 0))
     ds_vals = [summary[d]['meta']['n_features'] for d in ds_fd]
     for mn in MODEL_ORDER:
         accs = [summary[d].get(mn, {}).get('mean', 0) for d in ds_fd]
         ax.plot(ds_vals, accs, color=COLORS[mn], linestyle=LS[mn], linewidth=LW[mn],
-                marker=MK[mn], markersize=7, label=mn, markeredgecolor='white',
-                markeredgewidth=0.5)
+                marker=MK[mn], markersize=12, label=mn, markeredgecolor='white',
+                markeredgewidth=0.8)
     ax.set(xlabel='Number of Features (d)', ylabel='Accuracy (%)',
            title='Model Accuracy vs. Number of Features (d)')
     ax.legend(loc='best', title='Model', framealpha=0.9)
@@ -575,7 +578,7 @@ def plot_all(output_dir):
     # ==================================================================
     # 图5: Accuracy vs Number of Target Classes (k)
     # ==================================================================
-    fig, ax = plt.subplots(figsize=(10, 7))
+    fig, ax = plt.subplots(figsize=(12, 8))
     ds_kd = sorted(ds_names,
                    key=lambda d: summary[d].get('meta', {}).get('n_classes', 0))
     kvs = [summary[d]['meta']['n_classes'] for d in ds_kd]
@@ -588,8 +591,8 @@ def plot_all(output_dir):
             avg_a.append(np.mean(a_k))
             std_a.append(np.std(a_k) if len(a_k) > 1 else 0)
         ax.plot(uk, avg_a, color=COLORS[mn], linestyle=LS[mn], linewidth=LW[mn],
-                marker=MK[mn], markersize=7, label=mn, markeredgecolor='white',
-                markeredgewidth=0.5)
+                marker=MK[mn], markersize=12, label=mn, markeredgecolor='white',
+                markeredgewidth=0.8)
         if any(s > 0 for s in std_a):
             ax.fill_between(uk, [a - s for a, s in zip(avg_a, std_a)],
                             [a + s for a, s in zip(avg_a, std_a)],
